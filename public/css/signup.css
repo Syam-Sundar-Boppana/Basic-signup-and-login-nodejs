@@ -1,0 +1,26 @@
+body{
+    margin: 0px;
+    display: flex;
+    justify-content: center;
+    font-family: sans-serif;
+}
+form{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 160px;
+    font-family: sans-serif;
+    border: 2px solid blueviolet;
+    width: 400px;
+    height: 250px;
+    padding-top: 20px;
+    border-radius: 10px;
+}
+label {
+display: inline-block;
+width: 80px;
+text-align: right;
+}
+div{
+margin: 15px;
+}
