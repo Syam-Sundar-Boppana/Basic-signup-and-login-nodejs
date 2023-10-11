@@ -7,7 +7,27 @@ const router = express.Router();
 
 let userDetails;
 
-router.get('/', async (req,res) => {
+const authenticateToken = (req, res, next) =>{
+    let jwtToken;
+    const authHeader = req.headers['authorization'];
+    if (authHeader !== undefined){
+        jwtToken = authHeader.split(' ')[1];
+    }
+    if (jwtToken === undefined){
+        response.send("Invalid JWT Token");
+    }else{
+        jwt.verify(jwtToken,"MY_SECERET_TOKEN", async(err, payload)=>{
+            if (err){
+                res.send(err);
+            }else{
+                next();
+            }
+        })
+    }
+}
+
+
+router.get('/', authenticateToken, async (req,res) => {
     if (req.session.token){
         const username = userDetails[0].email;
         const task = await taskCollection.find({userName:username});
@@ -85,6 +105,9 @@ router.post('/login', async (req, res) =>{
         const hassedPassword = await bcrypt.compare(password,dbPassword)
         userDetails = await collection.find({email:username});
         if (hassedPassword === true){
+            const payload = {username:username};
+            const jwtToken = jwt.sign(payload, "MY_SECERET_TOKEN");
+            res.send(jwtToken);
             req.session.token = true;
             res.redirect(`/`); 
         }else{
