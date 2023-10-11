@@ -7,21 +7,19 @@ const router = express.Router();
 
 let userDetails;
 
-router.get('/', async (req,res) => { 
-    const token = req.cookies.token;
-    if (token === undefined){
-        res.redirect('/login');
-    }else{
+router.get('/', async (req,res) => {
+    if (req.session.token){
         const username = userDetails[0].email;
         const task = await taskCollection.find({userName:username});
-        res.render('home', {task:task});     
-    }
-});  
+        res.render('home', {task:task});
+    }else{
+        res.redirect('/login');
+    }}
+);  
 
 router.post('/', async (req, res) => {
     const username = userDetails[0].email;
-    const name = req.body.name;
-    if (name === ""){
+    if (req.body.name === ""){
         res.redirect(`/`);
     }else{
         await taskCollection.insertMany({name:req.body.name, userName:username});
@@ -50,7 +48,7 @@ router.post('/edit/:id', async (req, res) =>{
 
 
 router.get('/signup', (req, res) =>{
-    if (req.cookies.token){
+    if (req.session.token){
         res.redirect(`/`);
     }else{
         res.render('signup');
@@ -68,7 +66,7 @@ router.post('/signup', async (req, res) =>{
 })
 
 router.get('/login', (req,res) =>{
-    if (req.cookies.token){
+    if (req.session.token){
         res.redirect(`/`);
     }else{
         res.render('login');
@@ -85,12 +83,10 @@ router.post('/login', async (req, res) =>{
         res.send('<h1>User Not Found</h1>');
     }else{
         const hassedPassword = await bcrypt.compare(password,dbPassword)
+        userDetails = await collection.find({email:username});
         if (hassedPassword === true){
-            const payload = {username:username};
-            const jwtToken = jwt.sign(payload, "SECERET_TOKEN");
-            res.cookie('token', jwtToken);
-            userDetails = await collection.find({email:username});
-            res.redirect(`/`);   
+            req.session.token = true;
+            res.redirect(`/`); 
         }else{
             res.send('<h1>Incorrect Password</h1>');
         }
@@ -98,8 +94,9 @@ router.post('/login', async (req, res) =>{
 })
 
 router.post("/logout", (req, res) =>{
-    res.clearCookie('token');
+    req.session.destroy();
+    res.clearCookie('test')
     res.redirect('/login');
-});
+}); 
 
 module.exports = router
