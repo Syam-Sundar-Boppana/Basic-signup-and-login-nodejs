@@ -1,0 +1,11 @@
+POST http://localhost:3000/login
+Content-Type: application/json 
+
+{
+    "username":"syam@fs.com",
+    "loginPassword": "Lucky"
+}
+
+###
+GET  http://localhost:3000/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InN5YW1AZnMuY29tIiwiaWF0IjoxNjk3MDkxMTg0fQ.BoB-o2Y1MFtkr163kSRODkk9a1j9IpOYxlrfqBIr-oY

@@ -7,27 +7,7 @@ const router = express.Router();
 
 let userDetails;
 
-const authenticateToken = (req, res, next) =>{
-    let jwtToken;
-    const authHeader = req.headers['authorization'];
-    if (authHeader !== undefined){
-        jwtToken = authHeader.split(' ')[1];
-    }
-    if (jwtToken === undefined){
-        response.send("Invalid JWT Token");
-    }else{
-        jwt.verify(jwtToken,"MY_SECERET_TOKEN", async(err, payload)=>{
-            if (err){
-                res.send(err);
-            }else{
-                next();
-            }
-        })
-    }
-}
-
-
-router.get('/', authenticateToken, async (req,res) => {
+router.get('/', async (req,res) => {
     if (req.session.token){
         const username = userDetails[0].email;
         const task = await taskCollection.find({userName:username});
@@ -42,7 +22,7 @@ router.post('/', async (req, res) => {
     if (req.body.name === ""){
         res.redirect(`/`);
     }else{
-        await taskCollection.insertMany({name:req.body.name, userName:username});
+        await taskCollection.insertOne({name:req.body.name, userName:username});
         res.redirect(`/`);
     }
 });
@@ -81,7 +61,7 @@ router.post('/signup', async (req, res) =>{
         email:req.body.email,
         password: hashPassword
     }
-    await collection.insertMany(data);
+    await collection.insertOne(data);
     res.redirect('/login');
 })
 
@@ -97,17 +77,12 @@ router.post('/login', async (req, res) =>{
     const username = req.body.username
     const password = req.body.loginPassword;
     const userData = await collection.findOne({email:username});
-    const dbUsername = userData.email;
-    const dbPassword = userData.password;
-    if (dbUsername === null){
+    if (userData === null){
         res.send('<h1>User Not Found</h1>');
     }else{
-        const hassedPassword = await bcrypt.compare(password,dbPassword)
+        const hassedPassword = await bcrypt.compare(password,userData.password)
         userDetails = await collection.find({email:username});
         if (hassedPassword === true){
-            const payload = {username:username};
-            const jwtToken = jwt.sign(payload, "MY_SECERET_TOKEN");
-            res.send(jwtToken);
             req.session.token = true;
             res.redirect(`/`); 
         }else{
